@@ -5,11 +5,25 @@
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 
+#define NO_OF_GPIO 16
+struct GPIOPin
+{
+	int fd;
+	GPIODirection direction;
+};
 struct RpiGPIOAccess
 {
-	
+	struct GPIOPin pins[NO_OF_GPIO];
 };
+
+struct RpiGPIOAccess* init_rpi_gpio_access()
+{
+	struct RpiGPIOAccess* retVal = (struct RpiGPIOAccess*)malloc(sizeof(struct RpiGPIOAccess));
+	
+	return retVal;
+}
 
 static int boardToBcm(unsigned int portNo)
 {
@@ -52,7 +66,7 @@ static int boardToBcm(unsigned int portNo)
 	}
 }
 
-int exportPort(unsigned int portNo)
+int exportPort(struct RpiGPIOAccess* gpioAccess, unsigned int portNo)
 {
 	int bcmPortNo = boardToBcm(portNo);
 	
@@ -70,6 +84,14 @@ int exportPort(unsigned int portNo)
 			write(exportFd, buf, bytesToWrite);
 			close(exportFd);
 			usleep(1000 * 500);
+			
+			const unsigned int PORT_FD_PATH_MAX = 29;
+			char gpioPath[PORT_FD_PATH_MAX];
+			memset(gpioPath, 0, PORT_FD_PATH_MAX);
+			snprintf(gpioPath, PORT_FD_PATH_MAX, "/sys/class/gpio/gpio%d/value", bcmPortNo);
+			gpioAccess->pins[portNo].fd = open(gpioPath, O_RDWR | O_SYNC);
+			gpioAccess->pins[portNo].direction = IN;
+			
 			return 0;
 		}
 		return -2;
@@ -78,7 +100,7 @@ int exportPort(unsigned int portNo)
 	return -1;
 }
 
-int unexportPort(unsigned int portNo)
+int unexportPort(struct RpiGPIOAccess* gpioAccess, unsigned int portNo)
 {
 	int bcmPortNo = boardToBcm(portNo);
 	
@@ -88,7 +110,11 @@ int unexportPort(unsigned int portNo)
 		unexportFd = open("/sys/class/gpio/unexport", O_WRONLY);
 		
 		if(-1 != unexportFd)
-		{
+		{	
+			close(gpioAccess->pins[portNo].fd);
+			gpioAccess->pins[portNo].fd = -1;
+			gpioAccess->pins[portNo].direction = IN;
+			
 			const unsigned int BUF_MAX = 3;
 			char buf[BUF_MAX];
 			memset(buf, 0, BUF_MAX);
@@ -103,7 +129,7 @@ int unexportPort(unsigned int portNo)
 	return -1;	
 }
 
-int setPortDirection(unsigned int portNo, GPIODirection direction)
+int setPortDirection(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIODirection direction)
 {
 	int bcmPortNo = boardToBcm(portNo);
 	
@@ -120,7 +146,7 @@ int setPortDirection(unsigned int portNo, GPIODirection direction)
 		
 		if(-1 != directionFd)
 		{
-			const unsigned int MAX_DIR_LENGTH = 3;
+			const unsigned int MAX_DIR_LENGTH = 4;
 			char directionString[MAX_DIR_LENGTH];
 			memset(directionString, 0, MAX_DIR_LENGTH);
 			int bytesToWrite;
@@ -128,16 +154,18 @@ int setPortDirection(unsigned int portNo, GPIODirection direction)
 			switch(direction)
 			{
 				case IN:
-					bytesToWrite = snprintf(directionString, MAX_DIR_LENGTH, "%s", "out");
+					bytesToWrite = snprintf(directionString, MAX_DIR_LENGTH, "%s", "in");
 				break;
 				case OUT:
-					bytesToWrite = snprintf(directionString, MAX_DIR_LENGTH, "%s", "in");
+					bytesToWrite = snprintf(directionString, MAX_DIR_LENGTH, "%s", "out");
 				break;
 				default:
 				break;
 			}
 			write(directionFd, directionString, bytesToWrite);
 			close(directionFd);
+			
+			gpioAccess->pins[portNo].direction = direction;
 			
 			return 0;	
 		}
@@ -146,5 +174,22 @@ int setPortDirection(unsigned int portNo, GPIODirection direction)
 		return -2;
 	}
 	
+	return -1;
+}
+
+int setPortValue(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIOVal val)
+{
+	if(-1 != gpioAccess->pins[portNo].fd &&
+	   IN != gpioAccess->pins[portNo].direction)
+	{
+		const unsigned int BUF_LENGTH = 2;
+		char valStr[BUF_LENGTH];
+		memset(valStr, 0, BUF_LENGTH);
+		int bytesToWrite;
+		bytesToWrite = snprintf(valStr, BUF_LENGTH, "%d", val);
+		write(gpioAccess->pins[portNo].fd, valStr, bytesToWrite);
+		
+		return 0;
+	}
 	return -1;
 }

@@ -1,6 +1,7 @@
 #include "../inc/rpi_gpio_access.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define EXPECT(this, that) \
 if(this != that) \
@@ -19,9 +20,25 @@ else\
 
 int main(void)
 {
-	EXPECT(0, exportPort(3));
-	EXPECT(0, setPortDirection(3, OUT));
-	EXPECT(0, unexportPort(3));
+	struct RpiGPIOAccess* gpioAccess = init_rpi_gpio_access();
+	
+	EXPECT(0, exportPort(gpioAccess, 3));
+	EXPECT(0, setPortDirection(gpioAccess, 3, OUT));
+	EXPECT(0, setPortValue(gpioAccess, 3, HIGH));
+	usleep(1000 * 1000);
+	EXPECT(0, setPortValue(gpioAccess, 3, LOW));
+	usleep(1000 * 1000);
+	EXPECT(0, setPortValue(gpioAccess, 3, HIGH));
+	usleep(1000 * 1000);
+	EXPECT(0, setPortValue(gpioAccess, 3, LOW));
+	usleep(1000 * 1000);
+	EXPECT(0, setPortValue(gpioAccess, 3, HIGH));
+	usleep(1000 * 1000);
+	EXPECT(0, setPortValue(gpioAccess, 3, LOW));
+	usleep(1000 * 1000);		
+	EXPECT(0, unexportPort(gpioAccess, 3));
+	
+	free(gpioAccess);
 	
 	return 0;
 }
