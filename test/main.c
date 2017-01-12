@@ -20,6 +20,7 @@ else\
 int main(void)
 {
 	EXPECT(0, exportPort(3));
+	EXPECT(0, setPortDirection(3, OUT));
 	EXPECT(0, unexportPort(3));
 	
 	return 0;

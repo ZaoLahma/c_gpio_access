@@ -47,6 +47,7 @@ static int boardToBcm(unsigned int portNo)
 	case 26:
 		return 7;
 	default:
+		printf("No such port: %d\n", portNo);
 		return -1;
 	}
 }
@@ -68,6 +69,7 @@ int exportPort(unsigned int portNo)
 			int bytesToWrite = snprintf(buf, BUF_MAX, "%d", bcmPortNo);
 			write(exportFd, buf, bytesToWrite);
 			close(exportFd);
+			usleep(1000 * 500);
 			return 0;
 		}
 		return -2;
@@ -99,4 +101,50 @@ int unexportPort(unsigned int portNo)
 	}
 	
 	return -1;	
+}
+
+int setPortDirection(unsigned int portNo, GPIODirection direction)
+{
+	int bcmPortNo = boardToBcm(portNo);
+	
+	if(-1 != bcmPortNo)
+	{
+		int directionFd;
+		const unsigned int DIR_PATH_MAX_LENGTH = 35;
+		char directionPath[DIR_PATH_MAX_LENGTH];
+		memset(directionPath, 0, DIR_PATH_MAX_LENGTH);
+		
+		snprintf(directionPath, DIR_PATH_MAX_LENGTH, "/sys/class/gpio/gpio%d/direction", bcmPortNo);
+		
+		directionFd = open(directionPath, O_WRONLY);
+		
+		if(-1 != directionFd)
+		{
+			const unsigned int MAX_DIR_LENGTH = 3;
+			char directionString[MAX_DIR_LENGTH];
+			memset(directionString, 0, MAX_DIR_LENGTH);
+			int bytesToWrite;
+			
+			switch(direction)
+			{
+				case IN:
+					bytesToWrite = snprintf(directionString, MAX_DIR_LENGTH, "%s", "out");
+				break;
+				case OUT:
+					bytesToWrite = snprintf(directionString, MAX_DIR_LENGTH, "%s", "in");
+				break;
+				default:
+				break;
+			}
+			write(directionFd, directionString, bytesToWrite);
+			close(directionFd);
+			
+			return 0;	
+		}
+		
+		printf("Failed to open %s for writing\n", directionPath);
+		return -2;
+	}
+	
+	return -1;
 }
