@@ -5,8 +5,8 @@ struct RpiGPIOAccess;
 
 extern struct RpiGPIOAccess* init_rpi_gpio_access();
 
-extern int exportPort(struct RpiGPIOAccess* gpioAccess, unsigned int portNo);
-extern int unexportPort(struct RpiGPIOAccess* gpioAccess, unsigned int portNo);
+extern int export_port(struct RpiGPIOAccess* gpioAccess, unsigned int portNo);
+extern int unexport_port(struct RpiGPIOAccess* gpioAccess, unsigned int portNo);
 
 typedef enum GPIODirection
 {
@@ -14,7 +14,7 @@ typedef enum GPIODirection
 	OUT
 } GPIODirection;
 
-extern int setPortDirection(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIODirection direction);
+extern int set_port_direction(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIODirection direction);
 
 typedef enum GPIOVal
 {
@@ -22,6 +22,6 @@ typedef enum GPIOVal
 	LOW = 0
 } GPIOVal;
 
-extern int setPortValue(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIOVal val);
+extern int set_port_value(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIOVal val);
 
 #endif

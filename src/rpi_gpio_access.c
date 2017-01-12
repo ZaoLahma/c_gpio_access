@@ -25,7 +25,7 @@ struct RpiGPIOAccess* init_rpi_gpio_access()
 	return retVal;
 }
 
-static int boardToBcm(unsigned int portNo)
+static int board_to_bcm(unsigned int portNo)
 {
 	switch (portNo) {
 	case 3:
@@ -66,9 +66,9 @@ static int boardToBcm(unsigned int portNo)
 	}
 }
 
-int exportPort(struct RpiGPIOAccess* gpioAccess, unsigned int portNo)
+int export_port(struct RpiGPIOAccess* gpioAccess, unsigned int portNo)
 {
-	int bcmPortNo = boardToBcm(portNo);
+	int bcmPortNo = board_to_bcm(portNo);
 	
 	if(-1 != bcmPortNo)
 	{	
@@ -100,9 +100,9 @@ int exportPort(struct RpiGPIOAccess* gpioAccess, unsigned int portNo)
 	return -1;
 }
 
-int unexportPort(struct RpiGPIOAccess* gpioAccess, unsigned int portNo)
+int unexport_port(struct RpiGPIOAccess* gpioAccess, unsigned int portNo)
 {
-	int bcmPortNo = boardToBcm(portNo);
+	int bcmPortNo = board_to_bcm(portNo);
 	
 	if(-1 != bcmPortNo)
 	{	
@@ -129,9 +129,9 @@ int unexportPort(struct RpiGPIOAccess* gpioAccess, unsigned int portNo)
 	return -1;	
 }
 
-int setPortDirection(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIODirection direction)
+int set_port_direction(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIODirection direction)
 {
-	int bcmPortNo = boardToBcm(portNo);
+	int bcmPortNo = board_to_bcm(portNo);
 	
 	if(-1 != bcmPortNo)
 	{
@@ -177,7 +177,7 @@ int setPortDirection(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIO
 	return -1;
 }
 
-int setPortValue(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIOVal val)
+int set_port_value(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIOVal val)
 {
 	if(-1 != gpioAccess->pins[portNo].fd &&
 	   IN != gpioAccess->pins[portNo].direction)

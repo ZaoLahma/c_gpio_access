@@ -22,21 +22,21 @@ int main(void)
 {
 	struct RpiGPIOAccess* gpioAccess = init_rpi_gpio_access();
 	
-	EXPECT(0, exportPort(gpioAccess, 3));
-	EXPECT(0, setPortDirection(gpioAccess, 3, OUT));
-	EXPECT(0, setPortValue(gpioAccess, 3, HIGH));
+	EXPECT(0, export_port(gpioAccess, 3));
+	EXPECT(0, set_port_direction(gpioAccess, 3, OUT));
+	EXPECT(0, set_port_value(gpioAccess, 3, HIGH));
 	usleep(1000 * 1000);
-	EXPECT(0, setPortValue(gpioAccess, 3, LOW));
+	EXPECT(0, set_port_value(gpioAccess, 3, LOW));
 	usleep(1000 * 1000);
-	EXPECT(0, setPortValue(gpioAccess, 3, HIGH));
+	EXPECT(0, set_port_value(gpioAccess, 3, HIGH));
 	usleep(1000 * 1000);
-	EXPECT(0, setPortValue(gpioAccess, 3, LOW));
+	EXPECT(0, set_port_value(gpioAccess, 3, LOW));
 	usleep(1000 * 1000);
-	EXPECT(0, setPortValue(gpioAccess, 3, HIGH));
+	EXPECT(0, set_port_value(gpioAccess, 3, HIGH));
 	usleep(1000 * 1000);
-	EXPECT(0, setPortValue(gpioAccess, 3, LOW));
+	EXPECT(0, set_port_value(gpioAccess, 3, LOW));
 	usleep(1000 * 1000);		
-	EXPECT(0, unexportPort(gpioAccess, 3));
+	EXPECT(0, unexport_port(gpioAccess, 3));
 	
 	free(gpioAccess);
 	
