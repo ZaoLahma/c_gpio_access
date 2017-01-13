@@ -22,6 +22,12 @@ struct RpiGPIOAccess* init_rpi_gpio_access()
 {
 	struct RpiGPIOAccess* retVal = (struct RpiGPIOAccess*)malloc(sizeof(struct RpiGPIOAccess));
 	
+	int i;
+	for(i = 0; i < NO_OF_GPIO; ++i)
+	{
+		retVal->pins[i].fd = -1;
+	}
+	
 	return retVal;
 }
 
@@ -131,7 +137,7 @@ int export_port(struct RpiGPIOAccess* gpioAccess, unsigned int portNo)
 			memset(gpioPath, 0, PORT_FD_PATH_MAX);
 			snprintf(gpioPath, PORT_FD_PATH_MAX, "/sys/class/gpio/gpio%d/value", bcmPortNo);
 			gpioAccess->pins[board_to_GPIO_pin(portNo)].fd = open(gpioPath, O_RDWR | O_SYNC);
-			gpioAccess->pins[board_to_GPIO_pin(portNo)].direction = IN;
+			gpioAccess->pins[board_to_GPIO_pin(portNo)].direction = IN;			
 			
 			return 0;
 		}
@@ -198,7 +204,7 @@ int set_port_direction(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GP
 					bytesToWrite = snprintf(directionString, MAX_DIR_LENGTH, "%s", "in");
 				break;
 				case OUT:
-					bytesToWrite = snprintf(directionString, MAX_DIR_LENGTH, "%s", "out");
+					bytesToWrite = snprintf(directionString, MAX_DIR_LENGTH, "%s", "out");				
 				break;
 				default:
 				break;
@@ -233,4 +239,20 @@ int set_port_value(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIOVa
 		return 0;
 	}
 	return -1;
+}
+
+int get_port_value(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIOVal* val)
+{
+	if(-1 != gpioAccess->pins[board_to_GPIO_pin(portNo)].fd)
+	{
+		lseek(gpioAccess->pins[board_to_GPIO_pin(portNo)].fd, 0, SEEK_SET);	
+		const unsigned int BUF_LENGTH = 2;
+		char valStr[BUF_LENGTH];
+		memset(valStr, 0, BUF_LENGTH);
+		read(gpioAccess->pins[board_to_GPIO_pin(portNo)].fd, valStr, 1);
+		valStr[1] = '\0';
+		sscanf(valStr, "%d", (int*)val);	
+		return 0;
+	}
+	return -1;	
 }

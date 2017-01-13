@@ -23,5 +23,6 @@ typedef enum GPIOVal
 } GPIOVal;
 
 extern int set_port_value(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIOVal val);
+extern int get_port_value(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIOVal* val);
 
 #endif
