@@ -25,6 +25,47 @@ struct RpiGPIOAccess* init_rpi_gpio_access()
 	return retVal;
 }
 
+static int board_to_GPIO_pin(unsigned int portNo)
+{
+	switch (portNo) {
+	case 3:
+		return 0;
+	case 5:
+		return 1;
+	case 7:
+		return 2;
+	case 8:
+		return 3;
+	case 10:
+		return 4;
+	case 11:
+		return 5;
+	case 12:
+		return 6;
+	case 13:
+		return 7;
+	case 16:
+		return 8;
+	case 18:
+		return 9;
+	case 19:
+		return 10;
+	case 21:
+		return 11;
+	case 22:
+		return 12;
+	case 23:
+		return 13;
+	case 24:
+		return 14;
+	case 26:
+		return 15;
+	default:
+		printf("No such port: %d\n", portNo);
+		return -1;
+	}	
+}
+
 static int board_to_bcm(unsigned int portNo)
 {
 	switch (portNo) {
@@ -89,8 +130,8 @@ int export_port(struct RpiGPIOAccess* gpioAccess, unsigned int portNo)
 			char gpioPath[PORT_FD_PATH_MAX];
 			memset(gpioPath, 0, PORT_FD_PATH_MAX);
 			snprintf(gpioPath, PORT_FD_PATH_MAX, "/sys/class/gpio/gpio%d/value", bcmPortNo);
-			gpioAccess->pins[portNo].fd = open(gpioPath, O_RDWR | O_SYNC);
-			gpioAccess->pins[portNo].direction = IN;
+			gpioAccess->pins[board_to_GPIO_pin(portNo)].fd = open(gpioPath, O_RDWR | O_SYNC);
+			gpioAccess->pins[board_to_GPIO_pin(portNo)].direction = IN;
 			
 			return 0;
 		}
@@ -111,9 +152,9 @@ int unexport_port(struct RpiGPIOAccess* gpioAccess, unsigned int portNo)
 		
 		if(-1 != unexportFd)
 		{	
-			close(gpioAccess->pins[portNo].fd);
-			gpioAccess->pins[portNo].fd = -1;
-			gpioAccess->pins[portNo].direction = IN;
+			close(gpioAccess->pins[board_to_GPIO_pin(portNo)].fd);
+			gpioAccess->pins[board_to_GPIO_pin(portNo)].fd = -1;
+			gpioAccess->pins[board_to_GPIO_pin(portNo)].direction = IN;
 			
 			const unsigned int BUF_MAX = 3;
 			char buf[BUF_MAX];
@@ -165,7 +206,7 @@ int set_port_direction(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GP
 			write(directionFd, directionString, bytesToWrite);
 			close(directionFd);
 			
-			gpioAccess->pins[portNo].direction = direction;
+			gpioAccess->pins[board_to_GPIO_pin(portNo)].direction = direction;
 			
 			return 0;	
 		}
@@ -179,15 +220,15 @@ int set_port_direction(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GP
 
 int set_port_value(struct RpiGPIOAccess* gpioAccess, unsigned int portNo, GPIOVal val)
 {
-	if(-1 != gpioAccess->pins[portNo].fd &&
-	   IN != gpioAccess->pins[portNo].direction)
+	if(-1 != gpioAccess->pins[board_to_GPIO_pin(portNo)].fd &&
+	   IN != gpioAccess->pins[board_to_GPIO_pin(portNo)].direction)
 	{
 		const unsigned int BUF_LENGTH = 2;
 		char valStr[BUF_LENGTH];
 		memset(valStr, 0, BUF_LENGTH);
 		int bytesToWrite;
 		bytesToWrite = snprintf(valStr, BUF_LENGTH, "%d", val);
-		write(gpioAccess->pins[portNo].fd, valStr, bytesToWrite);
+		write(gpioAccess->pins[board_to_GPIO_pin(portNo)].fd, valStr, bytesToWrite);
 		
 		return 0;
 	}
